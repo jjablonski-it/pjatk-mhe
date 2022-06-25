@@ -1,12 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <set>
+#include <list>
 
 using namespace std;
 
-const int LENGTH = 100;
-
 // function that takes name of a file and returns the array of integers
+const int LENGTH = 100;
 int* read_file(string filename) {
     int* array = new int[LENGTH];
     int i = 0;
@@ -18,18 +19,21 @@ int* read_file(string filename) {
     file.close();
     return array;
 }
+const int* DATA = read_file("data.txt");
 
-vector<int> index_to_subset(int* array, string index) {
+
+vector<int> index_to_subset(string index) {
     vector<int> subset;
     for (int i = 0; i < index.length(); i++) {
       if(index[i] == '1') {
-        subset.push_back(array[i]);
+        subset.push_back(DATA[i]);
       }
     }
     return subset;
 }
 
-int subset_sum(vector<int> subset) {
+int subset_sum(string index) {
+    vector<int> subset = index_to_subset(index);
     int sum = 0;
     for (int i = 0; i < subset.size(); i++) {
         sum += subset[i];
@@ -55,7 +59,7 @@ bool character_in_string(string index, char c) {
     return false;
 }
 
-vector<string> generate_neighbors(string index){
+vector<string> generate_neighbors(string index) {
     vector<string> neighbors;
     for (int i = 0; i < index.length(); i++) {
       string neighbor = negate_bit(index, i);
@@ -66,26 +70,52 @@ vector<string> generate_neighbors(string index){
     return neighbors;
 }
 
-int main()
-{
-    cout << "Hello World" << endl;
-    int* data = read_file("data.txt");
-    // print the array
-    for (int i = 0; i < LENGTH; i++) {
-        cout << data[i] << " ";
+string tabu_search(string index, int iterations_limit) {
+  set<string> tl; // tabu list
+  list<string> l; // steps list
+  string best_index = index;
+  string current_index = index;
+  int i = 0;
+  while(i < iterations_limit && subset_sum(best_index)!=0 && l.size() > 0) {
+    i += 1;
+    vector<string> neighbors = generate_neighbors(current_index);
+    vector<int> neighbour_sum_dict; // {index -> sum} dict
+    for (int i = 0; i < neighbors.size(); i++) {
+        neighbour_sum_dict.push_back(subset_sum(neighbors[i]));
     }
-   // binary string with length LENGTH and only one 1 in it
-
-    string index = "101";
-    vector<int> subset = index_to_subset(data, index);
-
-    cout<< endl << "Subset: ";
-    // print the subset
-    for (int i = 0; i < subset.size(); i++) {
-        cout << subset[i] << " ";
+    vector<int> sorted_neighbors;
+    for (int i = 0; i < neighbour_sum_dict.size(); i++) {
+        sorted_neighbors.push_back(neighbour_sum_dict[i]);
     }
+    sort(sorted_neighbors.begin(), sorted_neighbors.end());
+    list<string> valid_neighbors;
+    for (int i = 0; i < sorted_neighbors.size(); i++) {
+        if(!tl.count(neighbors[i])) {
+            valid_neighbors.push_back(neighbors[i]);
+        }
+    }
+    if(valid_neighbors.size() > 0) {
+        string best_local_index = valid_neighbors.back();
+        valid_neighbors.pop_front();
+        if(subset_sum(best_local_index) < subset_sum(best_index)) {
+            l.push_back(current_index);
+            best_index = best_local_index;
+        }
+        current_index = best_local_index;
+    } else {
+        current_index = l.back();
+        l.pop_front();
+    }
+  }
+  cout << "Iterations: " << i << endl;
+  return best_index;
+}
 
-    cout << endl << "Sum: " << subset_sum(subset) << endl;
-
-    return 0;
+int main() {
+  string start_index = "1000010011001000101100000110000100100010101001001000001101011010101011000000101001100111001000100011";
+  string best_index = tabu_search(start_index, 1000);
+  int best_sum = subset_sum(best_index);
+  cout << "Start sum: " << subset_sum(start_index) << endl;
+  cout << "Best sum: " << best_sum << endl;
+  return 0;
 }
