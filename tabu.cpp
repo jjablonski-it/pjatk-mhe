@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include <map>
 
 using namespace std;
 
@@ -38,7 +39,8 @@ int subset_sum(string index) {
     for (int i = 0; i < subset.size(); i++) {
         sum += subset[i];
     }
-    return sum;
+    // return absoute value of sum
+    return abs(sum);
 }
 
 string negate_bit(string index, int i) {
@@ -73,34 +75,36 @@ vector<string> generate_neighbors(string index) {
 string tabu_search(string index, int iterations_limit) {
   set<string> tl; // tabu list
   list<string> l; // steps list
+  l.push_back(index);
   string best_index = index;
   string current_index = index;
   int i = 0;
-  while(i < iterations_limit && subset_sum(best_index)!=0 && l.size() > 0) {
+  while(i < iterations_limit && subset_sum(best_index) != 0 && l.size() > 0) {
     i += 1;
     vector<string> neighbors = generate_neighbors(current_index);
-    vector<int> neighbour_sum_dict; // {index -> sum} dict
+    vector<string> valid_neighbors;
     for (int i = 0; i < neighbors.size(); i++) {
-        neighbour_sum_dict.push_back(subset_sum(neighbors[i]));
-    }
-    vector<int> sorted_neighbors;
-    for (int i = 0; i < neighbour_sum_dict.size(); i++) {
-        sorted_neighbors.push_back(neighbour_sum_dict[i]);
-    }
-    sort(sorted_neighbors.begin(), sorted_neighbors.end());
-    list<string> valid_neighbors;
-    for (int i = 0; i < sorted_neighbors.size(); i++) {
         if(!tl.count(neighbors[i])) {
             valid_neighbors.push_back(neighbors[i]);
         }
     }
+
     if(valid_neighbors.size() > 0) {
-        string best_local_index = valid_neighbors.back();
-        valid_neighbors.pop_front();
+        // find neighbour with the lowest sum
+        int min_sum = subset_sum(valid_neighbors[0]);
+        string best_local_index = valid_neighbors[0];
+        for (int i = 1; i < valid_neighbors.size(); i++) {
+            int sum = subset_sum(valid_neighbors[i]);
+            if(sum < min_sum) {
+                min_sum = sum;
+                best_local_index = valid_neighbors[i];
+            }
+        }
+
         if(subset_sum(best_local_index) < subset_sum(best_index)) {
             l.push_back(current_index);
             best_index = best_local_index;
-        }
+        };
         current_index = best_local_index;
     } else {
         current_index = l.back();
@@ -112,7 +116,7 @@ string tabu_search(string index, int iterations_limit) {
 }
 
 int main() {
-  string start_index = "1000010011001000101100000110000100100010101001001000001101011010101011000000101001100111001000100011";
+  string start_index = "0101001001100110110100001111110111100000011001101010011000111100000111011011110011111100010101111101";
   string best_index = tabu_search(start_index, 1000);
   int best_sum = subset_sum(best_index);
   cout << "Start sum: " << subset_sum(start_index) << endl;
