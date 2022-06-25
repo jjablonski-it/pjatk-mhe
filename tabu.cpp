@@ -89,6 +89,7 @@ string tabu_search(string index, int iterations_limit) {
         }
     }
 
+    tl.insert(current_index);
     if(valid_neighbors.size() > 0) {
         // find neighbour with the lowest sum
         int min_sum = subset_sum(valid_neighbors[0]);
