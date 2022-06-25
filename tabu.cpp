@@ -37,6 +37,35 @@ int subset_sum(vector<int> subset) {
     return sum;
 }
 
+string negate_bit(string index, int i) {
+    if (index[i] == '1') {
+        index[i] = '0';
+    } else {
+        index[i] = '1';
+    }
+    return index;
+}
+
+bool character_in_string(string index, char c) {
+    for (int i = 0; i < index.length(); i++) {
+        if (index[i] == c) {
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<string> generate_neighbors(string index){
+    vector<string> neighbors;
+    for (int i = 0; i < index.length(); i++) {
+      string neighbor = negate_bit(index, i);
+      if(character_in_string(neighbor, '1')) {
+        neighbors.push_back(neighbor);
+      }
+    }
+    return neighbors;
+}
+
 int main()
 {
     cout << "Hello World" << endl;
