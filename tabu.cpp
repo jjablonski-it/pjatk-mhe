@@ -155,7 +155,7 @@ string tabu_search(string index, int iterations_limit)
 int main()
 {
     string start_index = read_index_file("start_index.txt");
-    string best_index = tabu_search(start_index, 100000);
+    string best_index = tabu_search(start_index, 1000);
     int best_sum = subset_sum(best_index);
     cout << "Start sum: " << subset_sum(start_index) << endl;
     cout << "Best sum: " << best_sum << endl;
